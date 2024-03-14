@@ -178,7 +178,7 @@ class Visualizer:
         x_min = args.top_view_region[0, 0]
         x_max = args.top_view_region[1, 0]
         if self.use_default_anchor:
-            self.anchor_x_steps = np.linspace(x_min, x_max, np.int(args.ipm_w / 8), endpoint=True)
+            self.anchor_x_steps = np.linspace(x_min, x_max, np.int64(args.ipm_w / 8), endpoint=True)
         else:
             self.anchor_x_steps = args.anchor_grid_x
         self.anchor_y_steps = args.anchor_y_steps
@@ -225,7 +225,7 @@ class Visualizer:
                     x_2d, y_2d = projective_transformation(P_g2im, x_3d, self.anchor_y_steps, z_3d)
                 visibility = lane_anchor[j, 2 * self.num_y_steps:3 * self.num_y_steps]
                 if not self.use_default_anchor:
-                    anchor_x_2d = anchor_x_2d.astype(np.int)
+                    anchor_x_2d = anchor_x_2d.astype(np.int64)
                 
                 x_2d = [x for i, x in enumerate(x_2d) if visibility[i] > self.prob_th]
                 y_2d = [y for i, y in enumerate(y_2d) if visibility[i] > self.prob_th]
@@ -309,7 +309,7 @@ class Visualizer:
                     x_2d, y_2d = projective_transformation(P_g2im, x_3d, self.anchor_y_steps, z_3d)
                 visibility = lane_anchor[j, 2 * self.num_y_steps:3 * self.num_y_steps]
                 if not self.use_default_anchor:
-                    anchor_x_2d = anchor_x_2d.astype(np.int)
+                    anchor_x_2d = anchor_x_2d.astype(np.int64)
                 
                 x_2d = [x for i, x in enumerate(x_2d) if visibility[i] > self.prob_th]
                 y_2d = [y for i, y in enumerate(y_2d) if visibility[i] > self.prob_th]
@@ -995,7 +995,7 @@ def nms_1d(v):
 #         anchor_dim = 3*args.num_y_steps + args.num_category
 #     anchor_x_steps = args.anchor_grid_x \
 #         if not args.use_default_anchor \
-#         else np.linspace(args.top_view_region[0, 0], args.top_view_region[1, 0], np.int(args.ipm_w/8))
+#         else np.linspace(args.top_view_region[0, 0], args.top_view_region[1, 0], np.int64(args.ipm_w/8))
 #
 #     batch_output_net = batch_output_net.reshape(batch_output_net.shape[0], batch_output_net.shape[1], anchor_dim)
 #     # print("cate before softmax: ", batch_output_net[:, :, anchor_dim-args.num_category:].shape)

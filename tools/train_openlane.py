@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/mnt/ve_perception/wangruihao/code/BEV-LaneDet')
+sys.path.append("..")
 import torch
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader
@@ -10,7 +10,7 @@ from models.loss import IoULoss, NDPushPullLoss
 from utils.config_util import load_config_module
 from sklearn.metrics import f1_score
 import numpy as np
-
+from torch.cuda.amp import autocast
 
 class Combine_Model_and_Loss(torch.nn.Module):
     def __init__(self, model):
@@ -64,6 +64,7 @@ def train_epoch(model, dataset, optimizer, configs, epoch):
         z_data = z_data.cuda()
         image_gt_segment = image_gt_segment.cuda()
         image_gt_instance = image_gt_instance.cuda()
+        # with autocast():
         prediction, loss_total_bev, loss_total_2d, loss_offset, loss_z = model(input_data,
                                                                                 gt_seg_data,
                                                                                 gt_emb_data,
@@ -101,7 +102,7 @@ def worker_function(config_file, gpu_id, checkpoint_path=None):
     model = Combine_Model_and_Loss(model)
     if torch.cuda.is_available():
         model = model.cuda()
-    model = torch.nn.DataParallel(model)
+    # model = torch.nn.DataParallel(model)
     optimizer = configs.optimizer(filter(lambda p: p.requires_grad, model.parameters()), **configs.optimizer_params)
     scheduler = getattr(configs, "scheduler", CosineAnnealingLR)(optimizer, configs.epochs)
     if checkpoint_path:
@@ -114,6 +115,7 @@ def worker_function(config_file, gpu_id, checkpoint_path=None):
     Dataset = getattr(configs, "train_dataset", None)
     if Dataset is None:
         Dataset = configs.training_dataset
+    print(str(configs.loader_args))
     train_loader = DataLoader(Dataset(), **configs.loader_args, pin_memory=True)
 
     ''' get validation '''
@@ -138,4 +140,4 @@ def worker_function(config_file, gpu_id, checkpoint_path=None):
 if __name__ == '__main__':
     import warnings
     warnings.filterwarnings("ignore")
-    worker_function('./openlane_config.py', gpu_id=[4, 5, 6, 7])
+    worker_function('./openlane_config.py', gpu_id=[0])
